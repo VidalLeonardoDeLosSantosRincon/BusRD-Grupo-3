@@ -16,7 +16,7 @@ BEGIN
             SELECT 1
             FROM dbo.Boletos WITH (UPDLOCK, HOLDLOCK)
             WHERE BoletoID = @BoletoID
-              AND Estado = 'Vendido'
+              AND Estado = 'Activo'
         )
             THROW 50020, 'El boleto no existe o ya fue anulado.', 1;
 
@@ -41,7 +41,7 @@ BEGIN
         UPDATE dbo.Boletos
         SET Estado = 'Anulado'
         WHERE BoletoID = @BoletoID
-          AND Estado = 'Vendido';
+          AND Estado = 'Activo';
 
         COMMIT TRANSACTION;
 

@@ -4,6 +4,7 @@ GO
 CREATE OR ALTER PROCEDURE dbo.sp_VenderBoleto
     @ViajeID INT,
     @NumeroAsiento INT,
+    @AutobusID INT,
     @ClienteID INT,
     @Canal VARCHAR(20),
     @MetodoPago VARCHAR(20),
@@ -67,7 +68,8 @@ BEGIN
             FROM dbo.Boletos WITH (UPDLOCK, HOLDLOCK)
             WHERE ViajeID = @ViajeID
               AND NumeroAsiento = @NumeroAsiento
-              AND Estado = 'Vendido'
+              AND AutobusID = @AutobusID
+              AND Estado = 'Activo'
         )
             THROW 50016, 'El asiento ya esta vendido.', 1;
 
@@ -77,10 +79,11 @@ BEGIN
 
         -- Insertar boleto.
         INSERT INTO dbo.Boletos
-            (ViajeID, NumeroAsiento, ClienteID, Estado, FechaVenta)
+            (ViajeID, NumeroAsiento, ClienteID, AutobusID, 
+            Precio, Estado, FechaVenta, Canal)
         VALUES
-            (@ViajeID, @NumeroAsiento, @ClienteID,
-             'Vendido', SYSDATETIME());
+            (@ViajeID, @NumeroAsiento, @ClienteID, @AutobusID,
+             @Monto, 'Activo', SYSDATETIME(), @Canal);
 
         SET @BoletoID = CONVERT(INT, SCOPE_IDENTITY());
 
@@ -90,7 +93,7 @@ BEGIN
              Estado, FechaPago)
         VALUES
             (@BoletoID, @Monto, @MetodoPago,
-             'Aprobado', SYSDATETIME());
+             'Aplicado', SYSDATETIME());
 
         COMMIT TRANSACTION;
 
