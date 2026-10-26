@@ -3,7 +3,7 @@ GO
 
 CREATE OR ALTER PROCEDURE dbo.sp_VenderBoleto
     @ViajeID INT,
-    @AsientoID INT,
+    @NumeroAsiento INT,
     @ClienteID INT,
     @Canal VARCHAR(20),
     @MetodoPago VARCHAR(20),
@@ -36,7 +36,7 @@ BEGIN
             INNER JOIN dbo.Asientos A
                 ON A.AutobusID = V.AutobusID
             WHERE V.ViajeID = @ViajeID
-              AND A.AsientoID = @AsientoID
+              AND A.NumeroAsiento = @NumeroAsiento
         )
             THROW 50011, 'El asiento no pertenece al autobus del viaje.', 1;
 
@@ -66,7 +66,7 @@ BEGIN
             SELECT 1
             FROM dbo.Boletos WITH (UPDLOCK, HOLDLOCK)
             WHERE ViajeID = @ViajeID
-              AND AsientoID = @AsientoID
+              AND NumeroAsiento = @NumeroAsiento
               AND Estado = 'Vendido'
         )
             THROW 50016, 'El asiento ya esta vendido.', 1;
@@ -77,19 +77,19 @@ BEGIN
 
         -- Insertar boleto.
         INSERT INTO dbo.Boletos
-            (ViajeID, AsientoID, ClienteID, Estado, FechaVenta)
+            (ViajeID, NumeroAsiento, ClienteID, Estado, FechaVenta)
         VALUES
-            (@ViajeID, @AsientoID, @ClienteID,
+            (@ViajeID, @NumeroAsiento, @ClienteID,
              'Vendido', SYSDATETIME());
 
         SET @BoletoID = CONVERT(INT, SCOPE_IDENTITY());
 
         -- Registrar pago en la misma transaccion.
         INSERT INTO dbo.Pagos
-            (BoletoID, Monto, Canal, MetodoPago,
+            (BoletoID, Monto, Metodo,
              Estado, FechaPago)
         VALUES
-            (@BoletoID, @Monto, @Canal, @MetodoPago,
+            (@BoletoID, @Monto, @MetodoPago,
              'Aprobado', SYSDATETIME());
 
         COMMIT TRANSACTION;
