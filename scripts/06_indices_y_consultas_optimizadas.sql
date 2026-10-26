@@ -12,7 +12,7 @@ GO
 DROP INDEX IF EXISTS IX_Asientos_NumeroAsiento ON dbo.Asientos;
 GO
 
-DROP INDEX IF EXISTS IX_Boletos_ViajeID_Estado_NumeroAsiento ON dbo.Boletos;
+DROP INDEX IF EXISTS IX_Boletos_ViajeID_Estado_NumeroAsiento_AutobusID ON dbo.Boletos;
 GO
 
 CREATE NONCLUSTERED INDEX IX_Viajes_AutobusID
@@ -23,8 +23,8 @@ CREATE NONCLUSTERED INDEX IX_Asientos_NumeroAsiento
 ON dbo.Asientos (NumeroAsiento) INCLUDE(Ubicacion);
 GO
 
-CREATE NONCLUSTERED INDEX IX_Boletos_ViajeID_Estado_NumeroAsiento
-ON dbo.Boletos (ViajeID, Estado, NumeroAsiento);
+CREATE NONCLUSTERED INDEX IX_Boletos_ViajeID_Estado_NumeroAsiento_AutobusID
+ON dbo.Boletos (ViajeID, Estado, NumeroAsiento, AutobusID);
 GO
 
 DECLARE @ViajeID INT = 16000;
@@ -38,7 +38,8 @@ WHERE v.ViajeID = @ViajeID
 					FROM dbo.Boletos b
 					WHERE b.ViajeID = @ViajeID
 					AND b.Estado = 'Activo'
-					AND b.NumeroAsiento = s.NumeroAsiento)
+					AND b.NumeroAsiento = s.NumeroAsiento
+					AND b.AutobusID = s.AutobusID)
 ORDER BY s.NumeroAsiento;
 GO
 
