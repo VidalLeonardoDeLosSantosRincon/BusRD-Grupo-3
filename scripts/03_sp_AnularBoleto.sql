@@ -22,13 +22,12 @@ BEGIN
 
         -- Registrar el reverso con monto negativo.
         INSERT INTO dbo.Pagos
-            (BoletoID, Monto, Canal, MetodoPago,
+            (BoletoID, Monto, Metodo,
              Estado, FechaPago)
         SELECT
             BoletoID,
-            -Monto,
-            Canal,
-            MetodoPago,
+            Monto,
+            Metodo,
             'Reversado',
             SYSDATETIME()
         FROM dbo.Pagos
