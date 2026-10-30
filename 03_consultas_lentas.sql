@@ -5,7 +5,7 @@ SET STATISTICS TIME ON;
 GO
 
 /* C1 - Pantalla de taquilla: asientos disponibles de un viaje */
-DECLARE @ViajeID INT = 16000;
+DECLARE @ViajeID INT = 3000;
 SELECT s.NumeroAsiento, s.Ubicacion
 FROM dbo.Viajes v
 JOIN dbo.Asientos s ON s.AutobusID = v.AutobusID
@@ -18,7 +18,11 @@ ORDER BY s.NumeroAsiento;
 GO
 
 /* C2 - Historial de viajes de un cliente por cédula */
-DECLARE @Cedula CHAR(11) = '40200012345';
+DECLARE @ClienteID INT = 3000;
+DECLARE @Cedula CHAR(11)
+
+SELECT @Cedula = Cedula From dbo.Clientes WHERE ClienteID = @ClienteID;
+
 SELECT c.Nombre, c.Apellido, r.Origen, r.Destino,
        v.FechaSalida, b.NumeroAsiento, b.Precio, b.Estado
 FROM dbo.Clientes c

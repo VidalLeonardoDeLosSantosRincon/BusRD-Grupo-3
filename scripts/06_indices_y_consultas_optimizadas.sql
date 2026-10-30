@@ -77,7 +77,11 @@ UPDATE dbo.Clientes
 SET Cedula = LTRIM(RTRIM(Cedula))
 WHERE Cedula LIKE ' %' OR Cedula LIKE '% ';
 
-DECLARE @Cedula CHAR(11) = '40200012345';
+DECLARE @ClienteID INT = 3000;
+DECLARE @Cedula CHAR(11)
+
+SELECT @Cedula = Cedula From dbo.Clientes WHERE ClienteID = @ClienteID;
+
 SELECT 
 	c.Nombre, 
 	c.Apellido, 

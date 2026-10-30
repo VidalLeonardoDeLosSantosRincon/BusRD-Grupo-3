@@ -76,6 +76,20 @@ END;
 --RESTORE FILELISTONLY
 --FROM DISK = 'C:\Backups\BusRD\BusRD_Full.bak');
 
+--Consultas de asientos disponibles y boletos vendidados de un viaje
+/*
+SELECT * FROM dbo.Asientos a
+WHERE a.AutobusID = '8'
+AND NOT EXISTS (
+		SELECT 1 FROM dbo.Boletos b
+		WHERE b.ViajeID = 3000
+		AND b.NumeroAsiento = a.NumeroAsiento
+);
+
+SELECT * FROM dbo.Boletos WHERE ViajeID = 3000
+ORDER BY FechaVenta DESC;
+*/
+
 --4) Vender 5 boletos
 --Canal: Taquilla, Web
 --Metodo: Efectivo, Tarjeta, Transferencia
@@ -86,35 +100,35 @@ BEGIN TRY
     BEGIN TRAN @NombreTransaccion;
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
 		@NumeroAsiento = 1,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
 		@Metodo = 'Efectivo';
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
 		@NumeroAsiento = 2,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
 		@Metodo = 'Efectivo';
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
-		@NumeroAsiento = 3,
-		@ClienteID = 3000,
-		@Canal = 'Taquilla',
-		@Metodo = 'Efectivo';
-
-	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
 		@NumeroAsiento = 4,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
 		@Metodo = 'Efectivo';
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
+		@NumeroAsiento = 5,
+		@ClienteID = 3000,
+		@Canal = 'Taquilla',
+		@Metodo = 'Efectivo';
+
+	EXEC dbo.sp_VenderBoleto_v0
+		@ViajeID = 3000,
 		@NumeroAsiento = 6,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
@@ -155,6 +169,20 @@ BEGIN
 	STATS = 10;
 END;
 
+--Consultas de asientos disponibles y boletos vendidados de un viaje
+/*
+SELECT * FROM dbo.Asientos a
+WHERE a.AutobusID = '8'
+AND NOT EXISTS (
+		SELECT 1 FROM dbo.Boletos b
+		WHERE b.ViajeID = 3000
+		AND b.NumeroAsiento = a.NumeroAsiento
+);
+
+SELECT * FROM dbo.Boletos WHERE ViajeID = 3000
+ORDER BY FechaVenta DESC;
+*/
+
 --6) Vender 3 boletos
 --Canal: Taquilla, Web
 --Metodo: Efectivo, Tarjeta, Transferencia
@@ -166,21 +194,21 @@ BEGIN TRY
     BEGIN TRAN @NombreTransaccion;
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
-		@NumeroAsiento = 7,
+		@ViajeID = 3000,
+		@NumeroAsiento = 11,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
 		@Metodo = 'Tarjeta';
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
 		@NumeroAsiento = 8,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
 		@Metodo = 'Tarjeta';
 
 	EXEC dbo.sp_VenderBoleto_v0
-		@ViajeID = 3665,
+		@ViajeID = 3000,
 		@NumeroAsiento = 9,
 		@ClienteID = 3000,
 		@Canal = 'Taquilla',
@@ -224,7 +252,7 @@ END;
 --8) Borrar todos los boletos del viaje asignado
 PRINT 'Hora exacta antes del DELETE: ' + CONVERT(varchar, SYSDATETIME(), 121);
 GO
-DELETE FROM dbo.Boletos WHERE ViajeID = 3665;
+DELETE FROM dbo.Boletos WHERE ViajeID = 3000;
 GO
 
 --9) Backup de LOG de cola

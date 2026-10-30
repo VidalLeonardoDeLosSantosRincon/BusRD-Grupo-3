@@ -84,10 +84,12 @@ ORDER BY pr.name, Objeto, pe.permission_name;
 GO
 
 -- PRUEBAS USUARIO TAQUILLA
-DECLARE @ViajeID INT, @Asiento INT, @BoletoID INT;
+DECLARE @ViajeID INT, @AutobusID INT, @Asiento INT, @Monto DECIMAL(10,2), @BoletoID INT;
 
-SELECT TOP 1 @ViajeID = ViajeID
-FROM dbo.Viajes WHERE Estado = 'Programado' ORDER BY ViajeID;
+-- Como dbo: viaje programado, su autobus y el precio de su ruta
+SELECT TOP 1 @ViajeID = v.ViajeID, @AutobusID = v.AutobusID, @Monto = r.PrecioBase
+FROM dbo.Viajes v JOIN dbo.Rutas r ON r.RutaID = v.RutaID
+WHERE v.Estado = 'Programado' ORDER BY v.ViajeID;
 SELECT TOP 1 @Asiento = NumeroAsiento
 FROM dbo.vw_AsientosDisponibles WHERE ViajeID = @ViajeID ORDER BY NumeroAsiento DESC;
 
@@ -99,7 +101,8 @@ BEGIN TRY
 
 
     EXEC dbo.sp_VenderBoleto @ViajeID = @ViajeID, @NumeroAsiento = @Asiento,
-         @ClienteID = 1, @Canal = 'Taquilla', @Metodo = 'Efectivo',
+         @AutobusID = @AutobusID, @ClienteID = 1, @Canal = 'Taquilla',
+         @MetodoPago = 'Efectivo', @Monto = @Monto,
          @BoletoID = @BoletoID OUTPUT;
     SELECT @BoletoID AS BoletoVendido;
 
@@ -184,8 +187,9 @@ GO
 EXECUTE AS USER = 'usr_reportes';
 BEGIN TRY
     DECLARE @id INT;
-    EXEC dbo.sp_VenderBoleto @ViajeID = 1, @NumeroAsiento = 1, @ClienteID = 1,
-         @Canal = 'Web', @Metodo = 'Tarjeta', @BoletoID = @id OUTPUT;
+    EXEC dbo.sp_VenderBoleto @ViajeID = 1, @NumeroAsiento = 1, @AutobusID = 1,
+         @ClienteID = 1, @Canal = 'Web', @MetodoPago = 'Tarjeta', @Monto = 500,
+         @BoletoID = @id OUTPUT;
 END TRY
 BEGIN CATCH
     SELECT 'DENEGADO' AS Resultado, ERROR_NUMBER() AS Error, ERROR_MESSAGE() AS Mensaje;

@@ -1,7 +1,7 @@
 USE BusRD;
 GO
 
-DECLARE @ClienteID INT = 300;
+DECLARE @ClienteID INT = 3000;
 DECLARE @ViajeID INT;
 DECLARE @AutobusID INT;
 DECLARE @NumeroAsiento INT;
