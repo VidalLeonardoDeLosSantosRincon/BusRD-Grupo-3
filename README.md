@@ -15,6 +15,8 @@
 | **7. Conclusiones** | **Grupo** | Lecciones aprendidas y riesgos pendientes |
 | **8. Anexos** | **Grupo** | Aporte de cada integrante |
 
+---
+
 ## Estructura del proyecto
 
 - [BusRD-Grupo-3/](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/tree/main)
@@ -33,3 +35,23 @@
   - [03_consultas_lentas.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/03_consultas_lentas.sql)
 
   - [evidencias/](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/tree/main/evidencias) *(capturas de pantalla numeradas)*
+
+---
+
+## Orden de ejecución
+
+| Orden | Script | Descripción |  
+|-------|--------|-------------|
+| **1** | [01_BusRD_base.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/01_BusRD_base.sql) | Configuración inicial para toda la base de datos.  |
+| **2** | [02_sp_VenderBoleto_v0.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/02_sp_VenderBoleto_v0.sql) | Crear el procedimiento para vender boleto por defecto. |
+| **3** | [03_consultas_lentas.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/03_consultas_lentas.sql) | Muestra de consultas que presentan lentitud. |
+| **4** | [01_integridad.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/01_integridad.sql) | Agrega configuraciones de integridad **(remueve valores duplicaciones, claves foráneas, verificaciones)**. |
+| **5** | [02_sp_VenderBoleto.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/02_sp_VenderBoleto.sql) | Crea nuevo procedimiento para la venta de boletos, en base a los críterios especificados. |
+| **6** | [03_sp_AnularBoleto.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/03_sp_AnularBoleto.sql) | Crea nuevo procedimiento para la anulación de boletos, en base a los críterios especificado. |
+| **7** | [04_demo_concurrencia_sesionA.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/04_demo_concurrencia_sesionA.sql) | Ejemplo de concurrencia A. |
+| **8** | [05_demo_concurrencia_sesionB.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/05_demo_concurrencia_sesionB.sql) | Ejemplo de concurrencia B. |
+| **9** | [06_indices_y_consultas_optimizadas.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/06_indices_y_consultas_optimizadas.sql) | Creación de índices y optimización de consultas. |
+| **10** | [07_seguridad.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/07_seguridad.sql) | Crear usuarios y define sus roles y permisos en la base de datos. |
+| **11** | [08_respaldo_y_restauracion.sql](https://github.com/VidalLeonardoDeLosSantosRincon/BusRD-Grupo-3/blob/main/scripts/08_respaldo_y_restauracion.sql) | Crear resplado completo, diferencial y de log, ejecuta proceso de restauración. |
+
+---
