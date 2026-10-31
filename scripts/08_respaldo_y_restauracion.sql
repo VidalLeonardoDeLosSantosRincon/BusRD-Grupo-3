@@ -119,11 +119,16 @@ BEGIN
 		THROW;
 	END CATCH;
 END;
+GO
 
 --3) Creamos carpetas necesarias para los backups
 --Nota: es necesario habilitar las opciones avanzadas y luego habilitar la ejecucion de comandos de consola.
+
 --Importante: Por motivos de seguridad de igual forma estos se deben apagar luego de creadas las carpetas 
 --para evitar que se puedan ejecutar algun otro tipo de comandos que puedan comprometer el sistema.
+
+/*
+
 BEGIN
 	DECLARE @Result1 INT;
 	DECLARE @Result2 INT;
@@ -163,7 +168,7 @@ BEGIN
 	RECONFIGURE;
 END;
 GO
-
+*/
 --4) Realizamos un respaldo completo.
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';

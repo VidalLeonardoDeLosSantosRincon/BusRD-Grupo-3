@@ -18,7 +18,6 @@ GO
 -- y restaurar nuestros logs
 ALTER DATABASE BusRD SET RECOVERY FULL;
 GO
-
 ```
 ---
 
@@ -54,7 +53,7 @@ BEGIN
 
 		-- seleccionamos un autobus de nuestro viaje o buscamos otro que este disponible
 		SELECT TOP 1 @AutobusID = AutobusID, @ViajeID = ViajeID 
-		FROM dbo.Viajes WHERE ViajeID = @ViajeID OR Estado = 'Programado';
+		FROM dbo.Viajes WHERE (ViajeID = @ViajeID AND Estado = 'Programado') OR Estado = 'Programado';
 	
 		SET @AutobusID = ISNULL(@AutobusID, 0);
 		SET @ViajeID = ISNULL(@ViajeID, 0);
@@ -83,7 +82,7 @@ BEGIN
 		DECLARE @CurrentIndex INT = 1;
 		DECLARE @TotalAsientos INT = (SELECT COUNT(ID) FROM @Asientos);
 		DECLARE @AsientoActual INT;
-		DECLARE @MensajeExito VARCHAR(MAX) = CONCAT('Se vendieron los ', @TotalAsientos, ' boletos para los asientos: ');
+		DECLARE @MensajeExito VARCHAR(MAX) = CONCAT('Se vendieron ', @TotalAsientos, ' boletos del viaje ', @ViajeID,' para los asientos: ');
 		DECLARE @BoletoID INT;
     
 		-- 3. Bucle para ejecutar el procedimiento por cada asiento
@@ -255,12 +254,15 @@ EXEC #usp_SimulaVentaBoletos
 	@ClienteID = 3000,
 	@CantidadBoletos = 5;
 GO
+
+--Consultamos los últimos 5 boletos vendidos para confirmar
+SELECT TOP 5 * FROM dbo.Boletos ORDER BY BoletoID DESC;
 ```
 
 ### 6) Realizamos un respaldo diferencial
 
 ```sql
---6) Backup diferencial
+--6) Realizamos un respaldo diferencial
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
@@ -294,6 +296,9 @@ EXEC #usp_SimulaVentaBoletos
 	@ClienteID = 3000,
 	@CantidadBoletos = 3;
 GO
+
+--Consultamos los últimos 8 boletos vendidos para confirmar
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
 ```
 
 ---
@@ -301,6 +306,7 @@ GO
 ### 8) Realizamos un respaldo de logs
 
 ```sql
+--8) Realizamos un respaldo de logs
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
@@ -326,12 +332,54 @@ GO
 
 ---
 
-### 9) Borramos todos los boletos
+### 9) Borramos los últimos 8 boletos agregados y sus pagos
 
 ```sql
-PRINT 'Hora exacta antes del DELETE: ' + CONVERT(varchar, SYSDATETIME(), 121);
-DELETE FROM dbo.Boletos;
+--9) Borramos los últimos 8 boletos agregados y sus pagos
+
+--Creamos la tabla temporal #BorradoAudit para guarda la fecha del borrado
+IF OBJECT_ID('tempdb..#BorradoAudit') IS NOT NULL
+    DROP TABLE #BorradoAudit;
 GO
+
+CREATE TABLE #BorradoAudit (ID INT IDENTITY, Fecha DATETIME2);
+GO
+
+--Iniciamos el borrado de los boletos
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRY
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    BEGIN TRANSACTION;
+	DECLARE @FechaBorrado DATETIME2 = SYSDATETIME();
+
+	--Guardando registro último borrado
+	INSERT INTO #BorradoAudit (Fecha) VALUES (@FechaBorrado);
+
+	--Borrando pago de boletos
+	DELETE FROM dbo.Pagos where BoletoID IN (
+		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
+	);
+
+	--Borrando boletos
+	DELETE FROM dbo.Boletos where BoletoID IN (
+		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
+	);
+
+    COMMIT TRANSACTION;
+	PRINT CONCAT('Hora exacta antes del DELETE:', @FechaBorrado);
+
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0
+        ROLLBACK TRANSACTION;
+
+    THROW;
+END CATCH;
+GO
+
+-- Consultamos los últimos 8 boletos agregados
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
 ```
 
 ---
@@ -346,12 +394,7 @@ BEGIN
 	DECLARE @fileExtension NVARCHAR(10) = '.trn';
 	DECLARE @fileName NVARCHAR(200) = CONCAT(@dbName, '_TailLog_BorradoBoletos', @fileExtension);
 	DECLARE @fullFilePath NVARCHAR(200) = CONCAT(@path, @fileName);
-	DECLARE @completedMessage NVARCHAR(200) = CONCAT(
-		'Respaldo de tail logs en el archivo "' 
-		,@fileName
-		,'" En la ruta "'
-		, @fullFilePath,
-		'"');
+	DECLARE @completedMessage NVARCHAR(200) = 'Respaldo de tail logs en el archivo';
 
 	USE master;
 
@@ -379,13 +422,19 @@ GO
 --Restauramos al primer backup realizado
 BEGIN
 	USE master; --Es recomendable cambiar de base de datos a master (u otra) antes de resturar backup de nuestra otra base de datos objetivo
+	
+	ALTER DATABASE BusRD SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 
 	-- Hora exacta del desastre para el STOPAT 
 	--Nota: para este ejemplo solo restauraremos hasta un minuto antes de la ejecución
 	-- en un escenario real es importante el saber el punto exacto hasta donde ocurrio el incidente
 	--para perder la menor cantidad de transacciones posibles.
-	DECLARE @stopAtTime DATETIME2 = DATEADD(minute, -1, SYSDATETIME());
+	DECLARE @stopAtTime DATETIME2;
+
+	--Buscamos la última fecha de borrado.
+	SELECT TOP 1 @stopAtTime = Fecha FROM #BorradoAudit ORDER BY ID DESC;
 
 	--Resturamos nuestro Full Backup
 	RESTORE DATABASE @dbName
@@ -424,6 +473,9 @@ BEGIN
 	USE BusRD;
 END;
 GO
+
+-- Consultamos los últimos 8 boletos agregados
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
 ```
 
 ---
