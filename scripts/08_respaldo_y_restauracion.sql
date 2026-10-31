@@ -36,7 +36,7 @@ BEGIN
 
 		-- seleccionamos un autobus de nuestro viaje o buscamos otro que este disponible
 		SELECT TOP 1 @AutobusID = AutobusID, @ViajeID = ViajeID 
-		FROM dbo.Viajes WHERE ViajeID = @ViajeID OR Estado = 'Programado';
+		FROM dbo.Viajes WHERE (ViajeID = @ViajeID AND Estado = 'Programado') OR Estado = 'Programado';
 	
 		SET @AutobusID = ISNULL(@AutobusID, 0);
 		SET @ViajeID = ISNULL(@ViajeID, 0);
@@ -65,7 +65,7 @@ BEGIN
 		DECLARE @CurrentIndex INT = 1;
 		DECLARE @TotalAsientos INT = (SELECT COUNT(ID) FROM @Asientos);
 		DECLARE @AsientoActual INT;
-		DECLARE @MensajeExito VARCHAR(MAX) = CONCAT('Se vendieron los ', @TotalAsientos, ' boletos para los asientos: ');
+		DECLARE @MensajeExito VARCHAR(MAX) = CONCAT('Se vendieron ', @TotalAsientos, ' boletos del viaje ', @ViajeID,' para los asientos: ');
 		DECLARE @BoletoID INT;
     
 		-- 3. Bucle para ejecutar el procedimiento por cada asiento
@@ -120,21 +120,6 @@ BEGIN
 	END CATCH;
 END;
 
-/*
-	IMPORTANTE!: Estimado Maestro, este proceso fue comentado por temas de seguridad,
-	otro proceso podria correr justo cuando este habilita 'xp_cmdshell'  y afectar algo de sistema 
-	de su maquina, entonces lo recomendable aquí seria crear de forma manual las carpetas:
-
-	1) 'C:\SqlBackups_Grupo3\BusRD'
-	2) 'C:\SqlBackups_Grupo3\BusRD\SQLData'
-	3) 'C:\SqlBackups_Grupo3\BusRD\SQLLogs'
-
-	Nota: Si de igual forma usted entiende que no representa un problema ejecutar esta parte 
-	del código para la creación de las carpetas para los respaldos, pues adelante.
-*/ 
-
-/*
-
 --3) Creamos carpetas necesarias para los backups
 --Nota: es necesario habilitar las opciones avanzadas y luego habilitar la ejecucion de comandos de consola.
 --Importante: Por motivos de seguridad de igual forma estos se deben apagar luego de creadas las carpetas 
@@ -178,7 +163,6 @@ BEGIN
 	RECONFIGURE;
 END;
 GO
-*/
 
 --4) Realizamos un respaldo completo.
 BEGIN
@@ -212,6 +196,9 @@ EXEC #usp_SimulaVentaBoletos
 	@CantidadBoletos = 5;
 GO
 
+--Consultamos los últimos 5 boletos vendidos para confirmar
+SELECT TOP 5 * FROM dbo.Boletos ORDER BY BoletoID DESC;
+
 --6) Realizamos un respaldo diferencial
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
@@ -242,6 +229,9 @@ EXEC #usp_SimulaVentaBoletos
 	@CantidadBoletos = 3;
 GO
 
+--Consultamos los últimos 8 boletos vendidos para confirmar
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
+
 --8) Realizamos un respaldo de logs
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
@@ -265,11 +255,36 @@ BEGIN
 END;
 GO
 
---9) Borramos todos los boletos
-PRINT 'Hora exacta antes del DELETE: ' + CONVERT(varchar, SYSDATETIME(), 121);
+--9) Borramos los últimos 8 boletos agregados y sus pagos
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRY
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    BEGIN TRANSACTION;
+	DECLARE @FechaTexto VARCHAR(30) = CONVERT(varchar, SYSDATETIME(), 121);
+
+	DELETE FROM dbo.Pagos where BoletoID IN (
+		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
+	);
+
+	DELETE FROM dbo.Boletos where BoletoID IN (
+		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
+	);
+
+    COMMIT TRANSACTION;
+	PRINT CONCAT('Hora exacta antes del DELETE:', @FechaTexto);
+
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0
+        ROLLBACK TRANSACTION;
+
+    THROW;
+END CATCH;
 GO
-DELETE FROM dbo.Boletos;
-GO
+
+-- Consultamos los últimos 8 boletos agregados
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
 
 --10) Realizamos un respaldo de logs de cola
 BEGIN
@@ -279,12 +294,7 @@ BEGIN
 	DECLARE @fileExtension NVARCHAR(10) = '.trn';
 	DECLARE @fileName NVARCHAR(200) = CONCAT(@dbName, '_TailLog_BorradoBoletos', @fileExtension);
 	DECLARE @fullFilePath NVARCHAR(200) = CONCAT(@path, @fileName);
-	DECLARE @completedMessage NVARCHAR(200) = CONCAT(
-		'Respaldo de tail logs en el archivo "' 
-		,@fileName
-		,'" En la ruta "'
-		, @fullFilePath,
-		'"');
+	DECLARE @completedMessage NVARCHAR(200) = 'Respaldo de tail logs en el archivo';
 
 	USE master;
 
@@ -352,3 +362,6 @@ BEGIN
 	USE BusRD;
 END;
 GO
+
+-- Consultamos los últimos 8 boletos agregados
+SELECT TOP 8 * FROM dbo.Boletos ORDER BY BoletoID DESC;
