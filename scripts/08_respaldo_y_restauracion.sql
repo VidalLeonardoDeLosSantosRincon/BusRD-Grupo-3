@@ -120,6 +120,21 @@ BEGIN
 	END CATCH;
 END;
 
+/*
+	IMPORTANTE!: Estimado Maestro, este proceso fue comentado por temas de seguridad,
+	otro proceso podria correr justo cuando este habilita 'xp_cmdshell'  y afectar algo de sistema 
+	de su maquina, entonces lo recomendable aquí seria crear de forma manual las carpetas:
+
+	1) 'C:\SqlBackups_Grupo3\BusRD'
+	2) 'C:\SqlBackups_Grupo3\BusRD\SQLData'
+	3) 'C:\SqlBackups_Grupo3\BusRD\SQLLogs'
+
+	Nota: Si de igual forma usted entiende que no representa un problema ejecutar esta parte 
+	del código para la creación de las carpetas para los respaldos, pues adelante.
+*/ 
+
+/*
+
 --3) Creamos carpetas necesarias para los backups
 --Nota: es necesario habilitar las opciones avanzadas y luego habilitar la ejecucion de comandos de consola.
 --Importante: Por motivos de seguridad de igual forma estos se deben apagar luego de creadas las carpetas 
@@ -162,6 +177,8 @@ BEGIN
 	EXEC sp_configure 'show advanced options', 0;
 	RECONFIGURE;
 END;
+
+*/
 
 --4) Realizamos un respaldo completo.
 BEGIN
