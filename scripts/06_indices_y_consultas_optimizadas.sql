@@ -27,7 +27,7 @@ CREATE NONCLUSTERED INDEX IX_Boletos_ViajeID_Estado_NumeroAsiento_AutobusID
 ON dbo.Boletos (ViajeID, Estado, NumeroAsiento, AutobusID);
 GO
 
-DECLARE @ViajeID INT = 16000;
+DECLARE @ViajeID INT = 3000;
 SELECT 
 	s.NumeroAsiento, 
 	s.Ubicacion
