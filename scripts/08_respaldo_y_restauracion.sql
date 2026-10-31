@@ -262,7 +262,7 @@ IF OBJECT_ID('tempdb..#BorradoAudit') IS NOT NULL
     DROP TABLE #BorradoAudit;
 GO
 
-CREATE TABLE #BorradoAudit (ID INT IDENTITY, Fecha VARCHAR(30));
+CREATE TABLE #BorradoAudit (ID INT IDENTITY, Fecha DATETIME2);
 GO
 
 --Iniciamos el borrado de los boletos
@@ -271,7 +271,7 @@ SET XACT_ABORT ON;
 BEGIN TRY
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
     BEGIN TRANSACTION;
-	DECLARE @FechaBorrado VARCHAR(30) = CONVERT(varchar, SYSDATETIME(), 121);
+	DECLARE @FechaBorrado DATETIME2 = SYSDATETIME();
 
 	--Guardando registro último borrado
 	INSERT INTO #BorradoAudit (Fecha) VALUES (@FechaBorrado);
@@ -332,13 +332,16 @@ GO
 --Restauramos al primer backup realizado
 BEGIN
 	USE master; --Es recomendable cambiar de base de datos a master (u otra) antes de resturar backup de nuestra otra base de datos objetivo
+	
+	ALTER DATABASE BusRD SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 
 	-- Hora exacta del desastre para el STOPAT 
 	--Nota: para este ejemplo solo restauraremos hasta un minuto antes de la ejecución
 	-- en un escenario real es importante el saber el punto exacto hasta donde ocurrio el incidente
 	--para perder la menor cantidad de transacciones posibles.
-	DECLARE @stopAtTime VARCHAR(30);
+	DECLARE @stopAtTime DATETIME2;
 
 	--Buscamos la última fecha de borrado.
 	SELECT TOP 1 @stopAtTime = Fecha FROM #BorradoAudit ORDER BY ID DESC;
@@ -373,8 +376,8 @@ BEGIN
 		WITH STOPAT = @stopAtTime,
 		RECOVERY;
 	PRINT CONCAT('4. Tail-Log restaurado con STOPAT (', @stopAtTime,'). ¡Base de datos recuperada y en línea!');
-
-	--Devolver a multiusuario (sin rollback)
+	
+	-- Devolver a multiusuario (sin rollback)
 	ALTER DATABASE BusRD SET MULTI_USER;
 
 	USE BusRD;
