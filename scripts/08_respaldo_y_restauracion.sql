@@ -14,9 +14,9 @@ BEGIN
 	DECLARE @Result2 INT;
 	DECLARE @Result3 INT;
 
-	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\Backups\BusRD';
-	DECLARE @SQLDataPath VARCHAR(50) = 'C:\Backups\BusRD\SQLData';
-	DECLARE @SQLLogsPath VARCHAR(50) = 'C:\Backups\BusRD\SQLLogs';
+	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
+	DECLARE @SQLDataPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD\SQLData';
+	DECLARE @SQLLogsPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD\SQLLogs';
 	DECLARE @Command NVARCHAR(100);
 
 	-- Verificar si la carpeta existe
@@ -50,7 +50,7 @@ END;
 
 --3) Realizamos un respaldo completo.
 BEGIN
-	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\Backups\BusRD';
+	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 	DECLARE @fileExtension NVARCHAR(10) = '.bak';
@@ -74,7 +74,7 @@ END;
 
 ------confirmamos nuestros archivos de backup .mdf y .ldf
 --RESTORE FILELISTONLY
---FROM DISK = 'C:\Backups\BusRD\BusRD_Full.bak');
+--FROM DISK = 'C:\SqlBackups_Grupo3\BusRD\BusRD_Full.bak');
 
 --Consultas de asientos disponibles y boletos vendidados de un viaje
 /*
@@ -149,7 +149,7 @@ END CATCH;
 
 --5) Backup diferencial
 BEGIN
-	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\Backups\BusRD';
+	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 	DECLARE @fileExtension NVARCHAR(10) = '.bak';
@@ -229,7 +229,7 @@ END CATCH;
 
 --7) Backup de LOG
 BEGIN
-	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\Backups\BusRD';
+	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 	DECLARE @fileExtension NVARCHAR(10) = '.trn';
@@ -257,7 +257,7 @@ GO
 
 --9) Backup de LOG de cola
 BEGIN
-	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\Backups\BusRD';
+	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
 	DECLARE @dbName NVARCHAR(50) = 'BusRD';
 	DECLARE @fileExtension NVARCHAR(10) = '.trn';
@@ -297,31 +297,31 @@ BEGIN
 
 	--Resturamos nuestro Full Backup
 	RESTORE DATABASE @dbName
-		FROM DISK = 'C:\Backups\BusRD\BusRD_Full.bak'
+		FROM DISK = 'C:\SqlBackups_Grupo3\BusRD\BusRD_Full.bak'
 		WITH REPLACE,
-		MOVE 'BusRD' TO 'C:\Backups\BusRD\SQLData\BusRD.mdf',
-		MOVE 'BusRD_log' TO 'C:\Backups\BusRD\SQLLogs\BusRD_log.ldf',
+		MOVE 'BusRD' TO 'C:\SqlBackups_Grupo3\BusRD\SQLData\BusRD.mdf',
+		MOVE 'BusRD_log' TO 'C:\SqlBackups_Grupo3\BusRD\SQLLogs\BusRD_log.ldf',
 		NORECOVERY,
 		STATS = 10;
 	PRINT '1. Backup FULL restaurado (en espera...).';
 
 	--Resturamos nuestros logs diferenciales
 	RESTORE DATABASE @dbName
-		FROM DISK = 'C:\Backups\BusRD\BusRD_Diff.bak'
+		FROM DISK = 'C:\SqlBackups_Grupo3\BusRD\BusRD_Diff.bak'
 		WITH NORECOVERY,
 		STATS = 10;
 	PRINT '2. Backup DIFERENCIAL restaurado (en espera...).';
 
 	--Restauramos los logs intermedios en orden cronológico.
 	RESTORE LOG @dbName
-		FROM DISK = 'C:\Backups\BusRD\BusRD_Log_1.trn'
+		FROM DISK = 'C:\SqlBackups_Grupo3\BusRD\BusRD_Log_1.trn'
 		WITH NORECOVERY,
 		STATS = 10;
 	PRINT '3. Log intermedio restaurado (en espera...).';
 
 	--Restauraramos el Tail-Log final USANDO STOPAT
 	RESTORE LOG @dbName
-		FROM DISK = 'C:\Backups\BusRD\BusRD_TailLog_BorradoBoletos.trn'
+		FROM DISK = 'C:\SqlBackups_Grupo3\BusRD\BusRD_TailLog_BorradoBoletos.trn'
 		WITH STOPAT = @stopAtTime,
 		RECOVERY;
 	PRINT '4. Tail-Log restaurado con STOPAT. ¡Base de datos recuperada y en línea!';
