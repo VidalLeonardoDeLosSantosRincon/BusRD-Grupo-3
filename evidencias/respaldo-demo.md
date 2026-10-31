@@ -370,10 +370,10 @@ GO
 ```
 ---
 
-### 11)  Restauramos en una base nueva BusRD_Recuperada hasta un momento antes del DELETE (STOPAT). 
+### 11)  Restauramos la base de datos BusRD hasta un momento antes del DELETE (STOPAT). 
 
 ```sql
---11) Restauramos en una base nueva BusRD_Recuperada hasta un momento antes del DELETE 
+--11) Restauramos la base de datos BusRD hasta un momento antes del DELETE 
 --(STOPAT). 
 
 --Restauramos al primer backup realizado
