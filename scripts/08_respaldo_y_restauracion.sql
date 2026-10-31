@@ -256,23 +256,38 @@ END;
 GO
 
 --9) Borramos los últimos 8 boletos agregados y sus pagos
+
+--Creamos la tabla temporal #BorradoAudit para guarda la fecha del borrado
+IF OBJECT_ID('tempdb..#BorradoAudit') IS NOT NULL
+    DROP TABLE #BorradoAudit;
+GO
+
+CREATE TABLE #BorradoAudit (ID INT IDENTITY, Fecha VARCHAR(30));
+GO
+
+--Iniciamos el borrado de los boletos
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 BEGIN TRY
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
     BEGIN TRANSACTION;
-	DECLARE @FechaTexto VARCHAR(30) = CONVERT(varchar, SYSDATETIME(), 121);
+	DECLARE @FechaBorrado VARCHAR(30) = CONVERT(varchar, SYSDATETIME(), 121);
 
+	--Guardando registro último borrado
+	INSERT INTO #BorradoAudit (Fecha) VALUES (@FechaBorrado);
+
+	--Borrando pago de boletos
 	DELETE FROM dbo.Pagos where BoletoID IN (
 		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
 	);
 
+	--Borrando boletos
 	DELETE FROM dbo.Boletos where BoletoID IN (
 		SELECT TOP 8 BoletoID FROM dbo.Boletos ORDER BY BoletoID DESC
 	);
 
     COMMIT TRANSACTION;
-	PRINT CONCAT('Hora exacta antes del DELETE:', @FechaTexto);
+	PRINT CONCAT('Hora exacta antes del DELETE:', @FechaBorrado);
 
 END TRY
 BEGIN CATCH
@@ -323,7 +338,10 @@ BEGIN
 	--Nota: para este ejemplo solo restauraremos hasta un minuto antes de la ejecución
 	-- en un escenario real es importante el saber el punto exacto hasta donde ocurrio el incidente
 	--para perder la menor cantidad de transacciones posibles.
-	DECLARE @stopAtTime DATETIME2 = DATEADD(minute, -1, SYSDATETIME());
+	DECLARE @stopAtTime VARCHAR(30);
+
+	--Buscamos la última fecha de borrado.
+	SELECT TOP 1 @stopAtTime = Fecha FROM #BorradoAudit ORDER BY ID DESC;
 
 	--Resturamos nuestro Full Backup
 	RESTORE DATABASE @dbName
