@@ -240,8 +240,8 @@ ALTER TABLE dbo.Asientos WITH CHECK ADD CONSTRAINT FK_Asientos_Autobuses
 ALTER TABLE dbo.Boletos WITH CHECK ADD CONSTRAINT FK_Boletos_Clientes
  FOREIGN KEY(ClienteID) REFERENCES dbo.Clientes(ClienteID);
 
-ALTER TABLE dbo.Boletos WITH CHECK ADD CONSTRAINT FK_Boletos_ViajeAutobus
- FOREIGN KEY(ViajeID,AutobusID) REFERENCES dbo.Viajes(ViajeID,AutobusID);
+ALTER TABLE dbo.Boletos WITH CHECK ADD CONSTRAINT FK_Boletos_Viaje
+    FOREIGN KEY(ViajeID) REFERENCES dbo.Viajes(ViajeID);
 
 ALTER TABLE dbo.Boletos WITH CHECK ADD CONSTRAINT FK_Boletos_AsientoAutobus
  FOREIGN KEY(AutobusID,NumeroAsiento) REFERENCES dbo.Asientos(AutobusID,NumeroAsiento);
