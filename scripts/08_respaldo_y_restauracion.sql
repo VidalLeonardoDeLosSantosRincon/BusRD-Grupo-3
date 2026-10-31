@@ -177,7 +177,7 @@ BEGIN
 	EXEC sp_configure 'show advanced options', 0;
 	RECONFIGURE;
 END;
-
+GO
 */
 
 --4) Realizamos un respaldo completo.
@@ -203,6 +203,7 @@ BEGIN
 	NAME = @completedMessage,
 	STATS = 10;
 END;
+GO
 
 --5) Vendemos 5 boletos
 EXEC #usp_SimulaVentaBoletos
@@ -211,7 +212,7 @@ EXEC #usp_SimulaVentaBoletos
 	@CantidadBoletos = 5;
 GO
 
---6) Backup diferencial
+--6) Realizamos un respaldo diferencial
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
@@ -232,6 +233,7 @@ BEGIN
 	NAME = @completedMessage,
 	STATS = 10;
 END;
+GO
 
 --7) Vendemos 3 boletos más
 EXEC #usp_SimulaVentaBoletos
@@ -240,7 +242,7 @@ EXEC #usp_SimulaVentaBoletos
 	@CantidadBoletos = 3;
 GO
 
---8) Backup de LOG
+--8) Realizamos un respaldo de logs
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
@@ -261,14 +263,15 @@ BEGIN
 	NAME = @completedMessage,
 	STATS = 10;
 END;
+GO
 
---9) Borrar todos los boletos
+--9) Borramos todos los boletos
 PRINT 'Hora exacta antes del DELETE: ' + CONVERT(varchar, SYSDATETIME(), 121);
 GO
 DELETE FROM dbo.Boletos;
 GO
 
---10) Backup de LOG de cola
+--10) Realizamos un respaldo de logs de cola
 BEGIN
 	DECLARE @SqlBackupPath VARCHAR(50) = 'C:\SqlBackups_Grupo3\BusRD';
 	DECLARE @path NVARCHAR(200) = CONCAT(@SqlBackupPath, '\');
@@ -296,8 +299,9 @@ BEGIN
 	NAME = @completedMessage,
 	STATS = 10;
 END;
+GO
 
---11) Restaurar en una base nueva BusRD_Recuperada hasta un momento antes del DELETE 
+--11) Restauramos la base de datos BusRD hasta un momento antes del DELETE 
 --(STOPAT). 
 
 --Restauramos al primer backup realizado
@@ -347,3 +351,4 @@ BEGIN
 
 	USE BusRD;
 END;
+GO
